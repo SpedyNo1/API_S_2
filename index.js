@@ -157,7 +157,7 @@ app.post("/upload", upload.array("photos", 1000), function (req, res, next) {
 app.listen(port, () => {
   console.log(`Server started on http://localhost:${port}`);
 });
-app.get('/upload-form', (req, res) => {
+app.get('/index', (req, res) => {
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">

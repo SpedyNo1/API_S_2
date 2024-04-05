@@ -157,7 +157,7 @@ app.post("/upload", upload.array("photos", 1000), function (req, res, next) {
 app.listen(port, () => {
   console.log(`Server started on http://localhost:${port}`);
 });
-app.get('/index', (req, res) => {
+app.get('/', (req, res) => {
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
@@ -200,7 +200,7 @@ app.get('/index', (req, res) => {
             }
             try {
               const response = await axios.post(
-                "https://api-s3.onrender.com/upload",
+                "http://localhost:3000/upload",
                 formData,
                 {
                   headers: {

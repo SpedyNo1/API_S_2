@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Upload</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <input type="file" id="fileInput" multiple accept=""/>
+    <button onclick="uploadFile()">Upload</button>
+    <progress
+      id="uploadProgress"
+      max="100"
+      value="0"
+      style="width: 100%"
+    ></progress>
+    <script>
+      const uploadFile = async () => {
+        const fileInput = document.getElementById("fileInput");
+        const file_select = fileInput.files[0];
+        console.log(fileInput.files);
+        console.log(fileInput.files.length);
+        // if (file_select.type !== "image/png") {
+        //   alert("Your file not PNG");
+        //   return false;
+        // }
+        if (!fileInput.files.length) {
+          return alert('Please choose a file to upload')
+        }
+        // if (file_select.size > 1024 * 1024 * 2) {
+        //   alert("Your file size Over 2MB");
+        //   return false;
+        // }
+        //console.log(length(fileInput.files))
+        const formData = new FormData();
+        for(let i=0;i<fileInput.files.length;i++){
+          formData.append("photos", fileInput.files[i]);
+        }
+        try {
+          const response = await axios.post(
+            "https://api-s3.onrender.com/upload",
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+              onUploadProgress: function (progressValue) {
+              uploadProgress.value = progressValue.progress * 100;
+              console.log(progressValue.progress);
+              },
+            }
+          );
+        } catch (error) {
+          console.log("error", error);
+          alert("Error uploading file");
+        }
+      };
+    </script>
+  </body>
+</html>

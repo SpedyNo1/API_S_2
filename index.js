@@ -200,7 +200,7 @@ app.get('/', (req, res) => {
             }
             try {
               const response = await axios.post(
-                "http://localhost:3000/upload",
+                "https://api-s-2.onrender.com/upload",
                 formData,
                 {
                   headers: {

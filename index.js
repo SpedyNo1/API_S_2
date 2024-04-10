@@ -55,9 +55,8 @@ const fs = require('fs');
 //     console.log('Image uploaded successfully:', data.Location);
 //   }
 // });
-
-
 const AWS = require("aws-sdk");
+const bodyParser = require('body-parser');
 async function uploadImageToS3(bucketName, key, imagePath, contentType) {
   const s3 = new AWS.S3({
     endpoint: "https://e5520b7e83bfebef0f7af36d88823aaf.r2.cloudflarestorage.com/",
@@ -71,13 +70,12 @@ async function uploadImageToS3(bucketName, key, imagePath, contentType) {
     Body: fs.createReadStream(imagePath),
     ContentType: contentType,
   };
-
-  // Upload the image to S3
   s3.upload(params, (err, data) => {
     if (err) {
       console.error("Error uploading image:", err);
     } else {
       console.log("Image uploaded successfully");
+      //console.log(data);
     }
   });
 }
@@ -88,37 +86,30 @@ async function deleteObjectsWithPrefix(bucketName, prefix) {
     secretAccessKey: "af11f5dbafcb6d2c9da8da433a33faaa3c8273fc641644f2045d94be00a7d4ae",
     region: "apac",
   });
-
   try {
     const data = await s3.listObjectsV2({
       Bucket: bucketName,
       Prefix: prefix // prefix to match objects
     }).promise();
-
     if (data.Contents.length === 0) {
       console.log('No objects found with the prefix:', prefix);
       return;
     }
-
     const objectsToDelete = data.Contents.map(obj => ({ Key: obj.Key }));
-
     const deletionParams = {
       Bucket: bucketName,
       Delete: {
         Objects: objectsToDelete
       }
     };
-
     await s3.deleteObjects(deletionParams).promise();
     console.log('All objects with prefix', prefix, 'deleted successfully');
   } catch (err) {
     console.error('Error:', err);
   }
 }
-//deleteObjectsWithPrefix("mocksolar", "DJI/");
+// deleteObjectsWithPrefix("mocksolar", "DJI/");
 //uploadImageToS3("mocksolar/test", "jnfdgn.jpg", "./uploads/S__25526312.jpg", "image/jpeg");
-
-
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
@@ -134,6 +125,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
 });
+
 const app = express();
 app.use(cors());
 const port = 3000;
@@ -143,15 +135,16 @@ const port = 3000;
 //   uploadFile('./uploads/'+req.file.originalname,req.file.originalname)
 // });
 
+app.get('/undo', (req, res) => {
+  deleteObjectsWithPrefix("mocksolar", "fuse123/");
+  res.send("complete");
+})
 app.post("/upload", upload.array("photos", 1000), function (req, res, next) {
-  // req.files is array of `photos` files
-  // req.body will contain the text fields, if there were any
-  //res.send(req.file.originalname)
+ console.log(req.files)//"./uploads/" + req.files[i].originalname
   for (let i = 0; i < req.files.length; i++) {
-    uploadImageToS3("mocksolar/fuse123", req.files[i].originalname, "./uploads/" + req.files[i].originalname, req.files[i].mimetype);
+    uploadImageToS3("mocksolar/fuse123", req.files[i].originalname, req.files[i].path, req.files[i].mimetype);
     //fs.unlinkSync("./uploads/" + req.files[i].originalname)
   }
-  console.log(req.files);
   res.send("File uploaded successfully");
 });
 app.listen(port, () => {
@@ -200,7 +193,7 @@ app.get('/', (req, res) => {
             }
             try {
               const response = await axios.post(
-                "https://api-s-2.onrender.com/upload",
+                "http://localhost:3000/upload",
                 formData,
                 {
                   headers: {
